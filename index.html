@@ -101,8 +101,27 @@
     /* Float animation runs only on the visible slide (battery + perf) */
     .pizza-slide .hero-pizza-spin { animation: none; }
     .pizza-slide.active .hero-pizza-spin { animation: gentleFloat 8s ease-in-out infinite alternate; }
-    /* App shell pinned to the viewport so the bottom nav always sticks. */
-    .interactive-ui { position: fixed; inset: 0; }
+    /* App shell pinned to the viewport so the bottom nav always sticks.
+       Layout is defined here in plain CSS (not only Tailwind utilities) so
+       the footer stays glued to the bottom even if the CDN is unreachable
+       or slide content runs tall. */
+    .interactive-ui {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    #sliderViewport {
+      flex: 1 1 auto;
+      min-height: 0; /* lets the slide area shrink so the footer never gets pushed off */
+      min-width: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .interactive-ui footer {
+      flex-shrink: 0; /* footer keeps its height, always visible at the bottom */
+    }
     /* Menu is non-interactive until a language is chosen on first visit. */
     body.locked .interactive-ui { pointer-events: none; }
     body.locked .interactive-ui .pizza-slide { user-select: none; }
