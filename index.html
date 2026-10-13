@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Arini Crust Pizza — wood-fired sourdough menu. Browse six artisan pizzas, view printable A4 menu sheets.">
-  <title>Arini Crust Pizza — Artisanal Fullscreen Menu & Printable Sheets</title>
+  <meta name="description" content="Arini Crust Pizza — wood-fired sourdough menu. Scan, swipe and browse six artisan pizzas.">
+  <title>Arini Crust Pizza — Wood-Fired Sourdough Menu</title>
   <link rel="icon" href="assets/images/logo.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     /* Early image fallback (WebP -> JPEG -> hide) so above-the-fold images
@@ -25,7 +25,7 @@
         extend: {
           fontFamily: {
             serif: ['"Playfair Display"', 'Georgia', 'serif'],
-            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', '"Noto Sans Devanagari"', 'system-ui', 'sans-serif'],
           },
           colors: {
             terracotta: '#C8372D',
@@ -48,7 +48,7 @@
     body {
       background-color: #171514;
       color: #FDFBF7;
-      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', system-ui, sans-serif;
       overflow-x: hidden;
     }
 
@@ -101,103 +101,68 @@
     /* Float animation runs only on the visible slide (battery + perf) */
     .pizza-slide .hero-pizza-spin { animation: none; }
     .pizza-slide.active .hero-pizza-spin { animation: gentleFloat 8s ease-in-out infinite alternate; }
-    @media (max-width: 419px) {
-      .btn-label { display: none; } /* icon-only header buttons on small phones */
-      .brand-title { font-size: 1rem; } /* compact brand */
-      .a4-sheet-preview { padding: 8mm 5mm; } /* preview fits narrow screens */
-      body.preview-print-mode .print-container { padding: 70px 8px 24px 8px; }
-      #previewToolbar { flex-wrap: wrap; padding: 10px 12px; }
-    }
+    /* App shell pinned to the viewport so the bottom nav always sticks. */
+    .interactive-ui { position: fixed; inset: 0; }
+    /* Menu is non-interactive until a language is chosen on first visit. */
+    body.locked .interactive-ui { pointer-events: none; }
+    body.locked .interactive-ui .pizza-slide { user-select: none; }
 
-    /* ---------- A4 sheet preview (on-screen) ---------- */
-    .print-container { display: none; }
-    .a4-sheet-preview {
-      width: min(210mm, 100%);
-      min-height: 0;
-      background: #FFFFFF;
-      color: #171514;
-      margin: 0 auto 40px auto;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-      padding: 14mm 16mm;
-      border-radius: 4px;
-      position: relative;
-    }
-    #previewToolbar { display: none; }
-    body.preview-print-mode { background: #E5E0D8 !important; }
-    body.preview-print-mode .interactive-ui { display: none !important; }
-    body.preview-print-mode .print-container { display: block !important; padding: 88px 16px 40px 16px; }
-    body.preview-print-mode #previewToolbar {
-      display: flex !important;
+    /* ---------- First-visit language modal ---------- */
+    .lang-modal {
+      display: none;
       position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 50;
+      inset: 0;
+      z-index: 100;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 16px;
-      background: rgba(23, 21, 20, 0.96);
-      border-bottom: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(8px);
+      justify-content: center;
+      padding: 20px;
+      background: rgba(10, 9, 8, 0.72);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
-
-    /* ---------- Print: strict A4 rules (top-level @page for max compatibility) ---------- */
-    @page {
-      size: A4 portrait;
-      margin: 12mm 14mm;
+    .lang-modal.open { display: flex; }
+    .lang-card {
+      width: min(420px, 100%);
+      background: #211E1C;
+      border: 1px solid rgba(217, 165, 102, 0.35);
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      animation: langPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
-    @media print {
-      html, body {
-        background: #ffffff !important;
-        color: #111111 !important;
-        font-family: 'Plus Jakarta Sans', Arial, sans-serif !important;
-        height: auto !important;
-        overflow: visible !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      .interactive-ui,
-      #previewToolbar,
-      .no-print {
-        display: none !important;
-      }
-      .print-container {
-        display: block !important;
-        width: 100% !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-      .a4-sheet-preview {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-      }
-      /* One pizza per physical page, no blank first/last page */
-      .print-page {
-        break-inside: avoid;
-        page-break-inside: avoid;
-        break-after: page;
-        page-break-after: always;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        background: #ffffff !important;
-        color: #111111 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      .print-page:last-child {
-        break-after: auto;
-        page-break-after: auto;
-      }
-      .print-hero-img {
-        max-height: 92mm !important;
-        width: auto !important;
-        max-width: 100% !important;
-        object-fit: contain !important;
-      }
+    @keyframes langPop {
+      0% { opacity: 0; transform: translateY(14px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .lang-logo {
+      width: 84px;
+      height: 84px;
+      border-radius: 9999px;
+      object-fit: cover;
+      border: 2px solid rgba(217, 165, 102, 0.6);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      margin: 0 auto 12px auto;
+      display: block;
+      background: #2A2725;
+    }
+    .lang-btn {
+      display: block;
+      width: 100%;
+      padding: 13px 16px;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, background-color 0.2s ease;
+    }
+    .lang-btn:active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: reduce) {
+      .lang-card { animation: none; }
+    }
+    /* Dots hide on very narrow screens so counter + buttons always fit. */
+    @media (max-width: 379px) {
+      #indicatorDots { display: none; }
     }
   </style>
 </head>
@@ -208,64 +173,36 @@
   <!-- ========================================== -->
   <div class="interactive-ui relative w-full max-w-full h-screen h-[100dvh] overflow-hidden flex flex-col justify-between">
 
-    <!-- TOP NAVIGATION & BRANDING BAR -->
-    <header class="safe-top relative z-30 w-full px-4 py-3 sm:px-5 sm:py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/40 border-b border-white/10">
-      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-        <div class="w-9 h-9 md:w-11 md:h-11 shrink-0 rounded-full overflow-hidden border border-white/20 bg-charcoalLight p-1 flex items-center justify-center">
-          <img src="assets/images/logo.webp" data-jpg="assets/images/logo.jpg" width="512" height="286" alt="Arini Crust Pizza Logo" class="w-full h-full object-contain filter brightness-110" onerror="imgFail(this)">
-        </div>
-        <div class="min-w-0">
-          <span class="brand-title font-serif tracking-wider text-lg md:text-xl font-bold uppercase text-parchment flex items-center gap-1.5 whitespace-nowrap">
-            Arini Crust <span class="text-terracotta text-sm italic font-normal lowercase tracking-normal">artisan pizza</span>
-          </span>
-          <p class="text-[10px] uppercase tracking-widest text-white/50 hidden sm:block">Wood-Fired Sourdough • Est. 2018</p>
-        </div>
-      </div>
-
-      <!-- Action items: Print Menu & Mode Switch -->
-      <div class="flex items-center gap-2 sm:gap-4 shrink-0">
-        <button onclick="triggerPrintMenu()" aria-label="Print menu" class="print-btn flex items-center gap-2 bg-white/10 hover:bg-terracotta transition-colors text-white text-xs font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-full border border-white/15 shadow-sm active:scale-95 group">
-          <svg class="w-4 h-4 text-crust group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-          </svg>
-          <span class="tracking-wide btn-label">Print Menu</span>
-        </button>
-
-        <button id="togglePreviewBtn" onclick="togglePrintPreview()" aria-label="Preview printable A4 sheets" class="flex items-center gap-1.5 text-xs text-white/70 hover:text-white bg-charcoalLight/80 hover:bg-charcoalLight px-3 py-2 rounded-full border border-white/10 transition-colors">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <span id="previewBtnText" class="btn-label">A4 Sheet View</span>
-        </button>
-      </div>
-    </header>
-
     <!-- MAIN SLIDER VIEWPORT (slides rendered from MENU data) -->
     <main id="sliderViewport" class="relative z-10 w-full flex-1 overflow-hidden select-none">
       <div id="slideTrack" class="slide-track h-full"></div>
     </main>
 
     <!-- BOTTOM INTERACTIVE CONTROLS BAR -->
-    <footer class="safe-bottom relative z-30 w-full px-4 py-3 sm:px-6 sm:py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/50 border-t border-white/10">
+    <footer class="safe-bottom relative z-30 w-full px-3 py-3 sm:px-6 sm:py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/50 border-t border-white/10">
 
       <!-- Slide Counter indicator -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <span id="slideCounter" class="font-serif text-xl sm:text-2xl font-bold text-parchment tracking-wider" aria-live="polite"></span>
         <!-- Progress Pills -->
-        <div class="flex items-center gap-1.5 ml-3" id="indicatorDots" role="tablist" aria-label="Pizza slides"></div>
+        <div class="hidden sm:flex items-center gap-1.5 ml-3" id="indicatorDots" role="tablist" aria-label="Pizza slides"></div>
       </div>
 
-      <!-- Navigation Arrows & Keyboard hints -->
-      <div class="flex items-center gap-3">
-        <span class="hidden md:inline-block text-[11px] text-white/40 uppercase tracking-widest mr-2">Use &#8592; &#8594; or Swipe</span>
+      <!-- Language, Print & Navigation -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span id="kbdHint" class="hidden md:inline-block text-[11px] text-white/40 uppercase tracking-widest mr-2">Use &#8592; &#8594; or Swipe</span>
 
-        <button id="prevBtn" onclick="prevSlide()" aria-label="Previous Pizza" class="nav-button w-11 h-11 md:w-12 md:h-12 rounded-full border border-white/20 bg-charcoalLight/80 hover:bg-white/20 flex items-center justify-center transition-transform active:scale-90 text-white">
+        <button id="langBtn" onclick="toggleLang()" aria-label="Switch language" class="h-10 px-3.5 rounded-full border border-crust/50 bg-charcoalLight/80 hover:bg-white/10 flex items-center justify-center transition-colors active:scale-95 text-crust text-sm font-bold">
+          हिंदी
+        </button>
+
+        <button id="prevBtn" onclick="prevSlide()" aria-label="Previous Pizza" class="nav-button w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 bg-charcoalLight/80 hover:bg-white/20 flex items-center justify-center transition-transform active:scale-90 text-white">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
           </svg>
         </button>
 
-        <button id="nextBtn" onclick="nextSlide()" aria-label="Next Pizza" class="nav-button w-11 h-11 md:w-12 md:h-12 rounded-full border border-terracotta bg-terracotta hover:bg-tomato flex items-center justify-center transition-transform active:scale-90 text-white shadow-lg">
+        <button id="nextBtn" onclick="nextSlide()" aria-label="Next Pizza" class="nav-button w-10 h-10 md:w-12 md:h-12 rounded-full border border-terracotta bg-terracotta hover:bg-tomato flex items-center justify-center transition-transform active:scale-90 text-white shadow-lg">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
           </svg>
@@ -275,31 +212,21 @@
     </footer>
   </div>
 
-  <!-- Sticky toolbar shown ONLY in A4 preview mode (always reachable, easy exit) -->
-  <div id="previewToolbar" class="no-print">
-    <div class="flex items-center gap-2 text-sm text-white/90">
-      <span class="font-serif font-bold">A4 Sheet Preview</span>
-      <span class="text-white/50 text-xs hidden sm:inline">6 sheets • one page per pizza</span>
-    </div>
-    <div class="flex items-center gap-2">
-      <button onclick="triggerPrintMenu()" class="flex items-center gap-1.5 bg-terracotta hover:bg-tomato text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors">
-        Print Menu
-      </button>
-      <button onclick="togglePrintPreview()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-4 py-2 rounded-full border border-white/15 transition-colors">
-        &#8592; Back to Menu
-      </button>
+  <!-- First-visit language selection modal -->
+  <div id="langModal" class="lang-modal" role="dialog" aria-modal="true" aria-labelledby="langTitle">
+    <div class="lang-card">
+      <img src="assets/images/logo.webp" data-jpg="assets/images/logo.jpg" width="512" height="286" alt="Arini Crust logo" class="lang-logo" onerror="imgFail(this)">
+      <h1 id="langTitle" class="font-serif text-3xl font-bold tracking-wide text-parchment">ARINI CRUST</h1>
+      <p class="text-white/60 text-sm mt-1 mb-5">Choose Your Language / अपनी भाषा चुनें</p>
+      <button onclick="chooseLanguage('en')" class="lang-btn bg-terracotta hover:bg-tomato text-white mb-2.5">English</button>
+      <button onclick="chooseLanguage('hi')" class="lang-btn bg-transparent hover:bg-white/10 text-crust border border-crust/60">हिंदी</button>
     </div>
   </div>
 
-  <!-- ============================================================== -->
-  <!-- 2. PRINT LAYOUT — A4 sheets rendered from the SAME MENU data   -->
-  <!-- ============================================================== -->
-  <div class="print-container" id="printContainer"></div>
-
   <!-- ========================================== -->
-  <!-- 3. SINGLE MENU DATA SOURCE + CONTROLLER    -->
+  <!-- 2. SINGLE MENU DATA SOURCE + CONTROLLER    -->
   <!-- Edit prices/names/ingredients here once —  -->
-  <!-- slider AND print sheets update together.   -->
+  <!-- the slider updates automatically.          -->
   <!-- Sample Indian prices (editable examples).  -->
   <!-- ========================================== -->
   <script>
@@ -320,13 +247,15 @@
         jpg: 'assets/images/pizza-margherita.jpg',
         w: 512, h: 512,
         sizes: [
-          { label: 'Regular (10")', price: 199 },
-          { label: 'Medium (12")', price: 299 },
-          { label: 'Large (14")', price: 399 }
+          { price: 199 },
+          { price: 299 },
+          { price: 399 }
         ],
         ingredients: ['48h Sourdough', 'San Marzano D.O.P.', 'Bufala Mozzarella', 'Genovese Sweet Basil', 'EVOO Liguria'],
-        printIngredients: 'Organic 48h fermented sourdough, San Marzano D.O.P. tomatoes, fresh bufala mozzarella, Genovese basil leaves, cold-pressed extra virgin olive oil.',
-        printFooter: 'Baked at 485°C in our stone oven'
+        category_hi: 'वुड-फायर्ड रेड',
+        badge_hi: 'सिग्नेचर क्लासिक',
+        description_hi: '48 घंटों तक धीमी आंच पर फर्मेंटेड फूली हुई सॉरडो क्रस्ट, रसीले सैन मार्ज़ानो टमाटर, ताज़ी बफैलो मोज़रेला, हाथ से चुनी मीठी तुलसी और लिगुरियन जैतून के तेल के साथ।',
+        ingredients_hi: ['48 घंटे का सॉरडो', 'सैन मार्ज़ानो टमाटर', 'बफैलो मोज़रेला', 'मीठी तुलसी', 'लिगुरियन जैतून तेल']
       },
       {
         name: 'Tartufo Selvaggio',
@@ -339,13 +268,15 @@
         jpg: 'assets/images/pizza-tartufo.jpg',
         w: 512, h: 512,
         sizes: [
-          { label: 'Regular (10")', price: 299 },
-          { label: 'Medium (12")', price: 399 },
-          { label: 'Large (14")', price: 499 }
+          { price: 299 },
+          { price: 399 },
+          { price: 499 }
         ],
         ingredients: ['Wild Porcini & Cremini', 'Shaved Black Truffle', 'Alpine Fontina', 'Taleggio Cream', 'Organic Thyme'],
-        printIngredients: 'Pan-seared wild porcini, shaved Norcia black truffles, Alpine fontina, taleggio cream, organic thyme, garlic-infused olive oil.',
-        printFooter: 'Handcrafted sourdough • Locally sourced mushrooms'
+        category_hi: 'गॉरमे व्हाइट बेस',
+        badge_hi: 'शेफ़्स स्पेशल',
+        description_hi: 'तवे पर सिके जंगली पोर्सिनी और क्रेमिनी मशरूम, पिघली अल्पाइन फॉन्टिना, रिच टैलेगियो, ताज़ी थाइम और हाथ से कतरे नॉर्शिया ब्लैक ट्रफल की खुशबू से भरपूर।',
+        ingredients_hi: ['जंगली पोर्सिनी मशरूम', 'ब्लैक ट्रफल', 'अल्पाइन फॉन्टिना', 'टैलेगियो क्रीम', 'ताज़ी थाइम']
       },
       {
         name: 'Diavola Fuoco',
@@ -358,13 +289,15 @@
         jpg: 'assets/images/pizza-diavola.jpg',
         w: 512, h: 512,
         sizes: [
-          { label: 'Regular (10")', price: 249 },
-          { label: 'Medium (12")', price: 349 },
-          { label: 'Large (14")', price: 449 }
+          { price: 249 },
+          { price: 349 },
+          { price: 449 }
         ],
         ingredients: ['Crispy Soppressata', 'Artisan Hot Honey', 'Calabrian Chili Flakes', 'Smoked Provolone', 'Wild Oregano'],
-        printIngredients: 'Dry-cured Soppressata Calabrese, wildflower hot honey, crushed Calabrian red chili, smoked provolone, fresh oregano.',
-        printFooter: 'Gluten-free 10" crust option available on request'
+        category_hi: 'स्पाइसी स्पेशल',
+        badge_hi: 'हॉट हनी इन्फ्यूज़्ड',
+        description_hi: 'लकड़ी की भट्टी में कुरकुरे सिके सोप्रेसाटा के टुकड़े, मिर्च-मिली जंगली फूलों की हॉट हनी, स्मोक्ड प्रोवोलोन और ताज़ा ऑरेगैनो के साथ।',
+        ingredients_hi: ['कुरकुरी सोप्रेसाटा', 'हॉट हनी', 'कैलेब्रियन मिर्च', 'स्मोक्ड प्रोवोलोन', 'ऑरेगैनो']
       },
       {
         name: 'Quattro Formaggi',
@@ -377,13 +310,15 @@
         jpg: 'assets/images/pizza-quattro.jpg',
         w: 512, h: 512,
         sizes: [
-          { label: 'Regular (10")', price: 249 },
-          { label: 'Medium (12")', price: 349 },
-          { label: 'Large (14")', price: 449 }
+          { price: 249 },
+          { price: 349 },
+          { price: 449 }
         ],
         ingredients: ['Gorgonzola Dolce', "Sheep's Milk Ricotta", 'Smoked Scamorza', 'Fior di Latte', 'Toasted Rosemary Walnuts'],
-        printIngredients: "Gorgonzola Dolce, sheep's milk ricotta, smoked scamorza, Fior di Latte, roasted rosemary walnuts, local acacia honey.",
-        printFooter: 'Contains walnuts (tree nuts) • Vegetarian friendly'
+        category_hi: 'व्हाइट फॉर्माजी',
+        badge_hi: 'फोर चीज़ डिलाइट',
+        description_hi: 'मखमली व्हाइट बेस पर क्रीमी गॉर्गनज़ोला, पुरानी फियोर डी लाटे, हाथ से बना भेड़ के दूध का रिकोटा, स्मोक्ड स्कामोर्ज़ा और भुने रोज़मेरी अखरोट।',
+        ingredients_hi: ['गॉर्गनज़ोला डोल्चे', 'भेड़ के दूध का रिकोटा', 'स्मोक्ड स्कामोर्ज़ा', 'फियोर डी लाटे', 'रोज़मेरी अखरोट']
       },
       {
         name: 'Prosciutto di Parma',
@@ -396,13 +331,15 @@
         jpg: 'assets/images/pizza-prosciutto.jpg',
         w: 768, h: 768,
         sizes: [
-          { label: 'Regular (10")', price: 299 },
-          { label: 'Medium (12")', price: 399 },
-          { label: 'Large (14")', price: 499 }
+          { price: 299 },
+          { price: 399 },
+          { price: 499 }
         ],
         ingredients: ['Prosciutto di Parma 24M', 'Wild Baby Arugula', 'Parmigiano Reggiano DOP', 'Fior di Latte', 'Aged Balsamic Glaze'],
-        printIngredients: 'Prosciutto di Parma D.O.P. (24 months aged), wild baby arugula, shaved Parmigiano Reggiano, Fior di Latte, Modena balsamic reduction.',
-        printFooter: 'Authentic D.O.P. ingredients from Emilia-Romagna'
+        category_hi: 'प्रॉशूटो क्रूडो',
+        badge_hi: 'पार्मा स्पेशल',
+        description_hi: 'सैन मार्ज़ानो टमाटर बेस पर बेकिंग के बाद रखा 24 महीने पुराना पार्मा प्रॉशूटो, चटपटी जंगली अरुगुला, पार्मिजियानो-रेजियानो और नींबू-बाल्समिक ग्लेज़।',
+        ingredients_hi: ['24 माह पुराना प्रॉशूटो', 'जंगली अरुगुला', 'पार्मिजियानो रेजियानो', 'फियोर डी लाटे', 'बाल्समिक ग्लेज़']
       },
       {
         name: 'Burrata & Pesto',
@@ -415,13 +352,15 @@
         jpg: 'assets/images/pizza-burrata.jpg',
         w: 768, h: 768,
         sizes: [
-          { label: 'Regular (10")', price: 299 },
-          { label: 'Medium (12")', price: 399 },
-          { label: 'Large (14")', price: 499 }
+          { price: 299 },
+          { price: 399 },
+          { price: 499 }
         ],
         ingredients: ['Whole Burrata Pugliese', 'Genovese Pine Nut Pesto', 'Heirloom Confit Tomatoes', 'Fior di Latte', 'Cold Pressed Olive Oil'],
-        printIngredients: 'Fresh Pugliese burrata 200g, Genovese pine nut pesto, blistered heirloom cherry tomatoes, Fior di Latte, flaked sea salt.',
-        printFooter: 'Arini Crust Pizza • 100% sourdough stone-baked daily'
+        category_hi: 'आर्टिसन ग्रीन बेस',
+        badge_hi: 'असली बुर्राटा स्पेशल',
+        description_hi: 'घर का बना तुलसी-पाइन नट पेस्टो, सिके हेरलूम चेरी टमाटर, कुटी काली मिर्च और ऊपर से पूरी 200 ग्राम क्रीमी बुर्राटा।',
+        ingredients_hi: ['पूरी बुर्राटा', 'तुलसी पाइन नट पेस्टो', 'हेरलूम टमाटर', 'फियोर डी लाटे', 'जैतून का तेल']
       }
     ];
 
@@ -453,17 +392,58 @@
         ' class="' + opts.cls + '" onerror="imgFail(this)">';
     }
 
-    /* ---------- Render the interactive slider from MENU ---------- */
+    /* Active language ('en' default) + centralized UI strings. Pizza-level
+       Hindi lives on each MENU record; everything else lives here. */
+    var lang = 'en';
+    var menuOpen = false;
+    var STR = {
+      en: {
+        sizesTitle: 'Available Sizes & Pricing',
+        ingredients: 'Prime Ingredients',
+        popular: 'Popular',
+        hint: 'Use ← → or Swipe',
+        prev: 'Previous Pizza',
+        next: 'Next Pizza',
+        dotsLabel: 'Pizza slides',
+        sizes: ['Regular (10")', 'Medium (12")', 'Large (14")'],
+        langName: 'हिंदी',
+        langAria: 'Switch language to Hindi'
+      },
+      hi: {
+        sizesTitle: 'साइज़ और कीमतें',
+        ingredients: 'मुख्य सामग्री',
+        popular: 'लोकप्रिय',
+        hint: '← → दबाएँ या स्वाइप करें',
+        prev: 'पिछला पिज़्ज़ा',
+        next: 'अगला पिज़्ज़ा',
+        dotsLabel: 'पिज़्ज़ा स्लाइड',
+        sizes: ['रेगुलर (10")', 'मीडियम (12")', 'लार्ज (14")'],
+        langName: 'English',
+        langAria: 'Switch language to English'
+      }
+    };
+    function T(key) { return STR[lang][key]; }
+    /* Language-aware pizza fields: names stay original, the rest translates. */
+    function P(p, field) {
+      var hf = p[field + '_hi'];
+      return (lang === 'hi' && hf) ? hf : p[field];
+    }
+    function dotAria(p) {
+      return lang === 'hi' ? p.name + ' देखें' : 'Show ' + p.name;
+    }
+
+    /* ---------- Render the interactive slider from MENU (in `lang`) ---------- */
     function slideHTML(p, i) {
-      var chips = p.ingredients.map(function (g) {
+      var list = P(p, 'ingredients');
+      var chips = list.map(function (g) {
         return '<span class="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-white/80">' + esc(g) + '</span>';
       }).join('');
       var cards = p.sizes.map(function (s, si) {
         var hot = si === 1; /* Medium highlighted as popular, matches original design */
         return '' +
           '<div class="' + (hot ? 'bg-black/40 border border-terracotta/40' : 'bg-black/30 border border-white/5') + ' rounded-xl p-2.5 sm:p-3 text-center relative overflow-hidden">' +
-            (hot ? '<span class="absolute top-1 -right-5 bg-terracotta text-[9px] text-white px-5 py-px rotate-[24deg] uppercase font-bold tracking-wide">Popular</span>' : '') +
-            '<span class="block text-[11px] sm:text-xs ' + (hot ? 'text-white/90' : 'text-white/60') + ' font-medium">' + esc(s.label) + '</span>' +
+            (hot ? '<span class="absolute top-1 -right-5 bg-terracotta text-[9px] text-white px-5 py-px rotate-[24deg] uppercase font-bold tracking-wide">' + esc(T('popular')) + '</span>' : '') +
+            '<span class="block text-[11px] sm:text-xs ' + (hot ? 'text-white/90' : 'text-white/60') + ' font-medium">' + esc(T('sizes')[si]) + '</span>' +
             '<span class="font-serif text-base sm:text-xl font-bold ' + (hot ? 'text-white' : 'text-crust') + ' mt-0.5 block">' + inr(s.price) + '</span>' +
           '</div>';
       }).join('');
@@ -473,72 +453,26 @@
             '<div class="w-full lg:w-1/2 flex items-center justify-center max-h-[44vh] sm:max-h-[48vh] lg:max-h-[75vh]">' +
               '<div class="relative w-full max-w-[320px] sm:max-w-[420px] lg:max-w-[560px] aspect-square rounded-full p-2 bg-gradient-to-tr from-white/5 to-white/0 border border-white/10 flex items-center justify-center shadow-2xl">' +
                 photoImg(p, { alt: p.name + ' Pizza', eager: i === 0, cls: 'w-[94%] h-[94%] object-cover rounded-full hero-pizza-glow hero-pizza-spin pointer-events-none' }) +
-                '<div class="absolute top-2 right-4 sm:top-6 sm:right-6 ' + p.badgeClass + ' font-serif italic text-xs md:text-sm px-3.5 py-1.5 rounded-full shadow-lg">' + esc(p.badge) + '</div>' +
+                '<div class="absolute top-2 right-4 sm:top-6 sm:right-6 ' + p.badgeClass + ' font-serif italic text-xs md:text-sm px-3.5 py-1.5 rounded-full shadow-lg">' + esc(P(p, 'badge')) + '</div>' +
               '</div>' +
             '</div>' +
             '<div class="w-full lg:w-1/2 flex flex-col justify-center space-y-4 md:space-y-6 text-left">' +
               '<div>' +
-                '<div class="' + p.kickerClass + ' font-semibold text-xs tracking-widest uppercase mb-1">' + esc(pad2(i + 1) + ' • ' + p.category) + '</div>' +
+                '<div class="' + p.kickerClass + ' font-semibold text-xs tracking-widest uppercase mb-1">' + esc(pad2(i + 1) + ' • ' + P(p, 'category')) + '</div>' +
                 '<h1 class="font-serif text-[1.7rem] sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-parchment leading-tight">' + esc(p.name) + '</h1>' +
-                '<p class="text-white/70 text-sm sm:text-base md:text-lg mt-2 max-w-xl font-light leading-relaxed">' + esc(p.description) + '</p>' +
+                '<p class="text-white/70 text-sm sm:text-base md:text-lg mt-2 max-w-xl font-light leading-relaxed">' + esc(P(p, 'description')) + '</p>' +
               '</div>' +
               '<div class="bg-charcoalLight/70 border border-white/10 rounded-2xl p-3.5 sm:p-5 backdrop-blur-sm">' +
-                '<div class="text-[11px] uppercase tracking-wider text-white/40 font-semibold mb-2.5">Available Sizes &amp; Pricing</div>' +
+                '<div class="text-[11px] uppercase tracking-wider text-white/40 font-semibold mb-2.5">' + esc(T('sizesTitle')) + '</div>' +
                 '<div class="grid grid-cols-3 gap-2.5 sm:gap-4">' + cards + '</div>' +
               '</div>' +
               '<div>' +
-                '<span class="text-[11px] uppercase tracking-wider text-white/40 font-semibold block mb-2">Prime Ingredients</span>' +
+                '<span class="text-[11px] uppercase tracking-wider text-white/40 font-semibold block mb-2">' + esc(T('ingredients')) + '</span>' +
                 '<div class="flex flex-wrap gap-1.5 sm:gap-2">' + chips + '</div>' +
               '</div>' +
             '</div>' +
           '</div>' +
         '</div>';
-    }
-
-    /* ---------- Render the printable A4 sheets from the SAME MENU ---------- */
-    function sheetHTML(p, i) {
-      var prices = p.sizes.map(function (s, si) {
-        return '' +
-          '<div>' +
-            '<span class="text-xs font-medium text-gray-500 block">' + esc(s.label) + '</span>' +
-            '<span class="font-serif text-xl font-bold ' + (si === 1 ? 'text-terracotta' : 'text-charcoal') + ' block mt-0.5">' + inr(s.price) + '</span>' +
-          '</div>';
-      }).join('');
-      return '' +
-        '<section class="print-page a4-sheet-preview">' +
-          '<div class="flex items-center justify-between border-b-2 border-charcoal/20 pb-4 mb-4">' +
-            '<div class="flex items-center gap-3">' +
-              '<img src="assets/images/logo.webp" data-jpg="assets/images/logo.jpg" width="512" height="286" alt="Arini Crust Pizza logo" class="w-9 h-9 object-contain" onerror="imgFail(this)">' +
-              '<div>' +
-                '<h2 class="font-serif text-2xl font-bold tracking-tight text-charcoal">ARINI CRUST PIZZA</h2>' +
-                '<p class="text-[10px] tracking-widest uppercase text-charcoal/60">Artisanal Wood-Fired Menu • Sourdough 48H</p>' +
-              '</div>' +
-            '</div>' +
-            '<div class="text-right">' +
-              '<span class="text-xs font-mono font-bold px-2 py-1 bg-gray-100 rounded border border-gray-300">PAGE ' + pad2(i + 1) + ' / ' + pad2(MENU.length) + '</span>' +
-              '<p class="text-[9px] text-gray-400 mt-0.5">arinicrust.com</p>' +
-            '</div>' +
-          '</div>' +
-          '<div class="flex justify-center my-3">' +
-            photoImg(p, { alt: p.name, eager: true, cls: 'print-hero-img w-auto object-cover rounded-xl shadow-md border border-gray-200' }) +
-          '</div>' +
-          '<div class="text-center my-3 px-4">' +
-            '<span class="text-xs font-semibold text-terracotta uppercase tracking-widest">' + esc(p.category) + '</span>' +
-            '<h3 class="font-serif text-3xl font-extrabold text-charcoal mt-1">' + esc(p.name) + '</h3>' +
-            '<p class="text-sm text-gray-700 mt-2 leading-relaxed max-w-lg mx-auto">' + esc(p.description) + '</p>' +
-          '</div>' +
-          '<div class="bg-gray-50 border border-gray-200 rounded-lg p-3 my-3">' +
-            '<div class="grid grid-cols-3 text-center divide-x divide-gray-200">' + prices + '</div>' +
-          '</div>' +
-          '<div class="border-t border-gray-200 pt-3">' +
-            '<span class="text-[11px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Key Ingredients</span>' +
-            '<p class="text-xs text-gray-700 leading-normal">' + esc(p.printIngredients) + '</p>' +
-          '</div>' +
-          '<div class="pt-3 mt-3 border-t border-gray-200 flex justify-between items-center text-[10px] text-gray-500">' +
-            '<span>' + esc(p.printFooter) + '</span>' +
-            '<span>Page ' + (i + 1) + ' of ' + MENU.length + '</span>' +
-          '</div>' +
-        '</section>';
     }
 
     /* ---------- State + rendering ---------- */
@@ -550,9 +484,8 @@
     var viewport = document.getElementById('sliderViewport');
 
     track.innerHTML = MENU.map(slideHTML).join('');
-    document.getElementById('printContainer').innerHTML = MENU.map(sheetHTML).join('');
 
-    /* Preload every menu image up-front so print sheets never render blank. */
+    /* Preload menu images after first paint so swiping feels instant. */
     function preloadImages() {
       MENU.forEach(function (p) {
         var im = new Image();
@@ -569,7 +502,6 @@
     } else {
       window.addEventListener('load', preloadImages);
     }
-    window.addEventListener('beforeprint', preloadImages);
 
     /* ---------- Slide navigation ---------- */
     function updateSlide() {
@@ -585,6 +517,7 @@
           ? 'w-8 h-1.5 rounded-full bg-terracotta transition-all'
           : 'w-2.5 h-1.5 rounded-full bg-white/20 hover:bg-white/40 transition-all';
         dots[d].setAttribute('aria-selected', d === currentSlide ? 'true' : 'false');
+        dots[d].setAttribute('aria-label', dotAria(MENU[d]));
       }
     }
 
@@ -601,7 +534,7 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.setAttribute('role', 'tab');
-      b.setAttribute('aria-label', 'Show ' + p.name);
+      b.setAttribute('aria-label', dotAria(p));
       b.addEventListener('click', function () { goToSlide(i); });
       indicatorDots.appendChild(b);
     });
@@ -609,82 +542,158 @@
 
     /* ---------- Keyboard: arrows only, never hijack form controls ---------- */
     window.addEventListener('keydown', function (e) {
-      if (document.body.classList.contains('preview-print-mode')) {
-        if (e.key === 'Escape') togglePrintPreview();
-        return;
-      }
       var t = e.target;
       if (t && t.closest && t.closest('button, input, textarea, select, [contenteditable="true"]')) return;
+      if (!menuOpen) return; /* modal owns the keyboard until a language is chosen */
       if (e.key === 'ArrowRight') { e.preventDefault(); nextSlide(); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
       else if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); nextSlide(); }
     });
 
-    /* ---------- Unified pointer drag: mouse + touch, with live follow ---------- */
-    var drag = { active: false, startX: 0, dx: 0, pointerId: null, moved: false };
-
     function viewportWidth() { return viewport.clientWidth || window.innerWidth || 1; }
+    function swipeThreshold() { return Math.min(90, viewportWidth() * 0.12); }
+
+    /* Shared finish: navigate past the threshold, else snap back. */
+    function finishSwipe(dx, moved) {
+      track.classList.remove('no-anim');
+      viewport.classList.remove('dragging');
+      var threshold = swipeThreshold();
+      if (dx <= -threshold) nextSlide();
+      else if (dx >= threshold) prevSlide();
+      else updateSlide(); /* snap back */
+      if (moved) {
+        /* Swallow the tap/click that follows a real swipe. */
+        var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+        viewport.addEventListener('click', swallow, true);
+        setTimeout(function () { viewport.removeEventListener('click', swallow, true); }, 80);
+      }
+    }
+
+    /* ---------- Touch swipe (primary mobile path — works even in old
+       QR-scanner WebViews without Pointer Events). Directional lock keeps
+       vertical scrolling native; only locked horizontal moves are claimed. */
+    var tsy = { active: false, id: null, x0: 0, y0: 0, dx: 0, lock: null, moved: false };
+
+    viewport.addEventListener('touchstart', function (e) {
+      if (!menuOpen) { tsy.active = false; return; }
+      if (e.touches.length !== 1) { tsy.active = false; return; }
+      var t = e.touches[0];
+      tsy.active = true; tsy.id = t.identifier;
+      tsy.x0 = t.clientX; tsy.y0 = t.clientY;
+      tsy.dx = 0; tsy.lock = null; tsy.moved = false;
+      track.classList.add('no-anim');
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', function (e) {
+      if (!tsy.active) return;
+      var t = null;
+      for (var k = 0; k < e.changedTouches.length; k++) {
+        if (e.changedTouches[k].identifier === tsy.id) t = e.changedTouches[k];
+      }
+      if (!t) return;
+      var dx = t.clientX - tsy.x0;
+      var dy = t.clientY - tsy.y0;
+      if (tsy.lock === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+        tsy.lock = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+      }
+      if (tsy.lock !== 'h') return; /* vertical scroll stays native */
+      if (e.cancelable) e.preventDefault();
+      tsy.dx = dx;
+      if (Math.abs(dx) > 6) tsy.moved = true;
+      var base = -(currentSlide * viewportWidth());
+      track.style.transform = 'translateX(' + (base + dx) + 'px)';
+    }, { passive: false });
+
+    function endTouch(e) {
+      if (!tsy.active) return;
+      tsy.active = false;
+      finishSwipe(tsy.dx, tsy.moved);
+      tsy.dx = 0; tsy.id = null;
+    }
+    viewport.addEventListener('touchend', endTouch);
+    viewport.addEventListener('touchcancel', endTouch);
+
+    /* ---------- Mouse drag (desktop). Gated to mouse so touch devices
+       never double-handle a gesture through both paths. ---------- */
+    var drag = { active: false, startX: 0, dx: 0, moved: false };
 
     viewport.addEventListener('pointerdown', function (e) {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (!menuOpen) return;
+      if (e.pointerType && e.pointerType !== 'mouse') return;
+      if (e.pointerType === undefined && e.pointerId === undefined && 'ontouchstart' in window) return;
+      if (e.button !== undefined && e.button !== 0) return;
       drag.active = true;
       drag.startX = e.clientX;
       drag.dx = 0;
       drag.moved = false;
-      drag.pointerId = e.pointerId;
       track.classList.add('no-anim');
       viewport.classList.add('dragging');
-      try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
     });
 
     viewport.addEventListener('pointermove', function (e) {
-      if (!drag.active || e.pointerId !== drag.pointerId) return;
+      if (!drag.active) return;
+      if (e.pointerType && e.pointerType !== 'mouse') return;
       drag.dx = e.clientX - drag.startX;
       if (Math.abs(drag.dx) > 6) drag.moved = true;
       var base = -(currentSlide * viewportWidth());
       track.style.transform = 'translateX(' + (base + drag.dx) + 'px)';
     });
 
-    function endDrag(e) {
-      if (!drag.active || (e && e.pointerId !== drag.pointerId)) return;
+    function endMouseDrag(e) {
+      if (!drag.active) return;
       drag.active = false;
-      viewport.classList.remove('dragging');
-      track.classList.remove('no-anim');
-      var threshold = Math.min(90, viewportWidth() * 0.12);
-      if (drag.dx <= -threshold) nextSlide();
-      else if (drag.dx >= threshold) prevSlide();
-      else updateSlide(); /* snap back */
-      if (drag.moved && e && e.type === 'pointerup') {
-        /* Swallow the click that follows a real drag so dots/buttons don't misfire. */
-        var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
-        viewport.addEventListener('click', swallow, true);
-        setTimeout(function () { viewport.removeEventListener('click', swallow, true); }, 50);
-      }
+      finishSwipe(drag.dx, drag.moved && e && e.type === 'pointerup');
       drag.dx = 0;
-      drag.pointerId = null;
     }
-    viewport.addEventListener('pointerup', endDrag);
-    viewport.addEventListener('pointercancel', endDrag);
+    viewport.addEventListener('pointerup', endMouseDrag);
+    viewport.addEventListener('pointercancel', endMouseDrag);
     viewport.addEventListener('dragstart', function (e) { e.preventDefault(); });
 
-    /* ---------- Print + A4 preview ---------- */
-    function triggerPrintMenu() {
-      window.print(); /* native dialog; print CSS outputs all sheets, any slide */
+    /* ---------- Language system: select + render (no storage — the
+       modal shows on every visit) ---------- */
+    /* Re-render everything in `lang` without touching currentSlide. */
+    function renderAll() {
+      document.documentElement.lang = lang;
+      track.innerHTML = MENU.map(slideHTML).join('');
+      document.getElementById('kbdHint').textContent = T('hint');
+      document.getElementById('prevBtn').setAttribute('aria-label', T('prev'));
+      document.getElementById('nextBtn').setAttribute('aria-label', T('next'));
+      var langBtn = document.getElementById('langBtn');
+      langBtn.textContent = T('langName');
+      langBtn.setAttribute('aria-label', T('langAria'));
+      indicatorDots.setAttribute('aria-label', T('dotsLabel'));
+      updateSlide();
     }
 
-    function togglePrintPreview() {
-      var on = document.body.classList.toggle('preview-print-mode');
-      var btnText = document.getElementById('previewBtnText');
-      if (btnText) btnText.textContent = on ? 'Exit A4 View' : 'A4 Sheet View';
-      var toggle = document.getElementById('togglePreviewBtn');
-      if (toggle) toggle.setAttribute('aria-expanded', on ? 'true' : 'false');
-      if (on) {
-        window.scrollTo(0, 0);
-        document.body.style.overflowY = 'auto';
-      } else {
-        document.body.style.overflowY = '';
-      }
+    function setLanguage(L) {
+      lang = (L === 'hi') ? 'hi' : 'en';
+      renderAll();
     }
+    function toggleLang() {
+      setLanguage(lang === 'en' ? 'hi' : 'en');
+    }
+
+    function openModal() {
+      menuOpen = false;
+      document.body.classList.add('locked');
+      document.getElementById('langModal').classList.add('open');
+    }
+    function closeModal() {
+      menuOpen = true;
+      document.body.classList.remove('locked');
+      document.getElementById('langModal').classList.remove('open');
+    }
+    function chooseLanguage(L) {
+      setLanguage(L);
+      closeModal();
+    }
+
+    /* ---------- Boot: always start with the language modal ---------- */
+    (function boot() {
+      lang = 'en';
+      renderAll();
+      openModal();
+    })();
   </script>
 
 </body>
