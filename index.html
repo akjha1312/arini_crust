@@ -11,6 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    /* Early image fallback (WebP -> JPEG -> hide) so above-the-fold images
+       degrade gracefully even before the main script runs. Redefined with
+       full placeholder support in the main script below. */
+    function imgFail(el) {
+      if (!el.dataset.fb && el.dataset.jpg) { el.dataset.fb = '1'; el.src = el.dataset.jpg; }
+      else { el.onerror = null; el.style.visibility = 'hidden'; }
+    }
+  </script>
+  <script>
     tailwind.config = {
       theme: {
         extend: {
@@ -84,6 +93,20 @@
     @keyframes gentleFloat {
       0% { transform: translateY(0px) rotate(0deg) scale(1); }
       100% { transform: translateY(-8px) rotate(1.5deg) scale(1.015); }
+    }
+
+    /* ---------- Mobile-first QR refinements ---------- */
+    .safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
+    .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+    /* Float animation runs only on the visible slide (battery + perf) */
+    .pizza-slide .hero-pizza-spin { animation: none; }
+    .pizza-slide.active .hero-pizza-spin { animation: gentleFloat 8s ease-in-out infinite alternate; }
+    @media (max-width: 419px) {
+      .btn-label { display: none; } /* icon-only header buttons on small phones */
+      .brand-title { font-size: 1rem; } /* compact brand */
+      .a4-sheet-preview { padding: 8mm 5mm; } /* preview fits narrow screens */
+      body.preview-print-mode .print-container { padding: 70px 8px 24px 8px; }
+      #previewToolbar { flex-wrap: wrap; padding: 10px 12px; }
     }
 
     /* ---------- A4 sheet preview (on-screen) ---------- */
@@ -183,16 +206,16 @@
   <!-- ========================================== -->
   <!-- 1. INTERACTIVE FULLSCREEN SLIDER MODE      -->
   <!-- ========================================== -->
-  <div class="interactive-ui relative w-screen h-screen h-[100dvh] overflow-hidden flex flex-col justify-between">
+  <div class="interactive-ui relative w-full max-w-full h-screen h-[100dvh] overflow-hidden flex flex-col justify-between">
 
     <!-- TOP NAVIGATION & BRANDING BAR -->
-    <header class="relative z-30 w-full px-5 py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/40 border-b border-white/10">
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 md:w-11 md:h-11 shrink-0 rounded-full overflow-hidden border border-white/20 bg-charcoalLight p-1 flex items-center justify-center">
-          <img src="assets/images/logo.jpg" alt="Arini Crust Pizza Logo" class="w-full h-full object-contain filter brightness-110" onerror="this.style.display='none'">
+    <header class="safe-top relative z-30 w-full px-4 py-3 sm:px-5 sm:py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/40 border-b border-white/10">
+      <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div class="w-9 h-9 md:w-11 md:h-11 shrink-0 rounded-full overflow-hidden border border-white/20 bg-charcoalLight p-1 flex items-center justify-center">
+          <img src="assets/images/logo.webp" data-jpg="assets/images/logo.jpg" width="512" height="286" alt="Arini Crust Pizza Logo" class="w-full h-full object-contain filter brightness-110" onerror="imgFail(this)">
         </div>
         <div class="min-w-0">
-          <span class="font-serif tracking-wider text-lg md:text-xl font-bold uppercase text-parchment flex items-center gap-1.5 whitespace-nowrap">
+          <span class="brand-title font-serif tracking-wider text-lg md:text-xl font-bold uppercase text-parchment flex items-center gap-1.5 whitespace-nowrap">
             Arini Crust <span class="text-terracotta text-sm italic font-normal lowercase tracking-normal">artisan pizza</span>
           </span>
           <p class="text-[10px] uppercase tracking-widest text-white/50 hidden sm:block">Wood-Fired Sourdough • Est. 2018</p>
@@ -201,18 +224,18 @@
 
       <!-- Action items: Print Menu & Mode Switch -->
       <div class="flex items-center gap-2 sm:gap-4 shrink-0">
-        <button onclick="triggerPrintMenu()" class="print-btn flex items-center gap-2 bg-white/10 hover:bg-terracotta transition-colors text-white text-xs font-semibold px-3.5 py-2 md:px-5 md:py-2.5 rounded-full border border-white/15 shadow-sm active:scale-95 group">
+        <button onclick="triggerPrintMenu()" aria-label="Print menu" class="print-btn flex items-center gap-2 bg-white/10 hover:bg-terracotta transition-colors text-white text-xs font-semibold px-3 py-2 md:px-5 md:py-2.5 rounded-full border border-white/15 shadow-sm active:scale-95 group">
           <svg class="w-4 h-4 text-crust group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
           </svg>
-          <span class="tracking-wide">Print Menu</span>
+          <span class="tracking-wide btn-label">Print Menu</span>
         </button>
 
-        <button id="togglePreviewBtn" onclick="togglePrintPreview()" aria-label="Preview printable A4 sheets" class="flex items-center gap-1.5 text-xs text-white/70 hover:text-white bg-charcoalLight/80 hover:bg-charcoalLight px-3.5 py-2 rounded-full border border-white/10 transition-colors">
+        <button id="togglePreviewBtn" onclick="togglePrintPreview()" aria-label="Preview printable A4 sheets" class="flex items-center gap-1.5 text-xs text-white/70 hover:text-white bg-charcoalLight/80 hover:bg-charcoalLight px-3 py-2 rounded-full border border-white/10 transition-colors">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
-          <span id="previewBtnText">A4 Sheet View</span>
+          <span id="previewBtnText" class="btn-label">A4 Sheet View</span>
         </button>
       </div>
     </header>
@@ -223,7 +246,7 @@
     </main>
 
     <!-- BOTTOM INTERACTIVE CONTROLS BAR -->
-    <footer class="relative z-30 w-full px-6 py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/50 border-t border-white/10">
+    <footer class="safe-bottom relative z-30 w-full px-4 py-3 sm:px-6 sm:py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/50 border-t border-white/10">
 
       <!-- Slide Counter indicator -->
       <div class="flex items-center gap-3">
@@ -282,17 +305,20 @@
   <script>
     'use strict';
 
-    /* Single source of truth for the whole menu. */
+    /* Single source of truth for the whole menu.
+       Photos 1-4: original set. Prosciutto + Burrata: Unsplash photos,
+       stored locally — no hotlinking, no color filters. */
     var MENU = [
       {
         name: 'Margherita Verace',
-        kicker: '01 • Wood-Fired Red',
+        category: 'Wood-Fired Red',
         kickerClass: 'text-terracotta',
         badge: 'Signature Classic',
         badgeClass: 'bg-terracotta text-white border border-white/20',
         description: 'Blistered sourdough crust naturally fermented for 48 hours, loaded with vibrant San Marzano tomatoes, fresh buffalo mozzarella, hand-picked sweet basil, and Ligurian olive oil.',
-        image: 'assets/images/pizza-margherita.jpg',
-        imageFilter: '',
+        image: 'assets/images/pizza-margherita.webp',
+        jpg: 'assets/images/pizza-margherita.jpg',
+        w: 512, h: 512,
         sizes: [
           { label: 'Regular (10")', price: 199 },
           { label: 'Medium (12")', price: 299 },
@@ -300,18 +326,18 @@
         ],
         ingredients: ['48h Sourdough', 'San Marzano D.O.P.', 'Bufala Mozzarella', 'Genovese Sweet Basil', 'EVOO Liguria'],
         printIngredients: 'Organic 48h fermented sourdough, San Marzano D.O.P. tomatoes, fresh bufala mozzarella, Genovese basil leaves, cold-pressed extra virgin olive oil.',
-        printCategory: 'Pizzeria Classica',
         printFooter: 'Baked at 485°C in our stone oven'
       },
       {
         name: 'Tartufo Selvaggio',
-        kicker: '02 • Gourmet White Base',
+        category: 'Gourmet White Base',
         kickerClass: 'text-crust',
         badge: "Chef's Reserve",
         badgeClass: 'bg-charcoal text-crust border border-crust/50',
         description: 'Fragrant forest blend of pan-seared wild porcini and cremini mushrooms, melted alpine fontina, rich taleggio, fresh garden thyme, and hand-shaved Norcia black truffles.',
-        image: 'assets/images/pizza-tartufo.jpg',
-        imageFilter: '',
+        image: 'assets/images/pizza-tartufo.webp',
+        jpg: 'assets/images/pizza-tartufo.jpg',
+        w: 512, h: 512,
         sizes: [
           { label: 'Regular (10")', price: 299 },
           { label: 'Medium (12")', price: 399 },
@@ -319,18 +345,18 @@
         ],
         ingredients: ['Wild Porcini & Cremini', 'Shaved Black Truffle', 'Alpine Fontina', 'Taleggio Cream', 'Organic Thyme'],
         printIngredients: 'Pan-seared wild porcini, shaved Norcia black truffles, Alpine fontina, taleggio cream, organic thyme, garlic-infused olive oil.',
-        printCategory: "Chef's Reserve",
         printFooter: 'Handcrafted sourdough • Locally sourced mushrooms'
       },
       {
         name: 'Diavola Fuoco',
-        kicker: '03 • Spicy Specialty',
+        category: 'Spicy Specialty',
         kickerClass: 'text-terracotta',
         badge: 'Hot Honey Infused',
         badgeClass: 'bg-terracotta text-white border border-white/20',
         description: 'Artisanal dry-cured Soppressata Calabrese cups blistered crisp in wood-fired heat, accompanied by chili-infused wildflower hot honey, smoked provolone, and fresh oregano.',
-        image: 'assets/images/pizza-diavola.jpg',
-        imageFilter: '',
+        image: 'assets/images/pizza-diavola.webp',
+        jpg: 'assets/images/pizza-diavola.jpg',
+        w: 512, h: 512,
         sizes: [
           { label: 'Regular (10")', price: 249 },
           { label: 'Medium (12")', price: 349 },
@@ -338,18 +364,18 @@
         ],
         ingredients: ['Crispy Soppressata', 'Artisan Hot Honey', 'Calabrian Chili Flakes', 'Smoked Provolone', 'Wild Oregano'],
         printIngredients: 'Dry-cured Soppressata Calabrese, wildflower hot honey, crushed Calabrian red chili, smoked provolone, fresh oregano.',
-        printCategory: 'Spicy Specialty',
         printFooter: 'Gluten-free 10" crust option available on request'
       },
       {
         name: 'Quattro Formaggi',
-        kicker: '04 • White Formaggi',
+        category: 'White Formaggi',
         kickerClass: 'text-crust',
         badge: 'Four Cheese Delicacy',
         badgeClass: 'bg-charcoal text-parchment border border-white/20',
         description: "Velvety white base with creamy Gorgonzola Dolce, aged Fior di Latte, hand-dipped sheep's milk ricotta dollops, smoked scamorza, and roasted rosemary walnuts.",
-        image: 'assets/images/pizza-quattro.jpg',
-        imageFilter: '',
+        image: 'assets/images/pizza-quattro.webp',
+        jpg: 'assets/images/pizza-quattro.jpg',
+        w: 512, h: 512,
         sizes: [
           { label: 'Regular (10")', price: 249 },
           { label: 'Medium (12")', price: 349 },
@@ -357,18 +383,18 @@
         ],
         ingredients: ['Gorgonzola Dolce', "Sheep's Milk Ricotta", 'Smoked Scamorza', 'Fior di Latte', 'Toasted Rosemary Walnuts'],
         printIngredients: "Gorgonzola Dolce, sheep's milk ricotta, smoked scamorza, Fior di Latte, roasted rosemary walnuts, local acacia honey.",
-        printCategory: 'White Formaggi',
         printFooter: 'Contains walnuts (tree nuts) • Vegetarian friendly'
       },
       {
         name: 'Prosciutto di Parma',
-        kicker: '05 • Prosciutto Crudo',
+        category: 'Prosciutto Crudo',
         kickerClass: 'text-terracotta',
         badge: 'Parma Special',
         badgeClass: 'bg-basil text-white border border-white/20',
         description: 'San Marzano tomato base topped post-bake with 24-month aged Prosciutto di Parma, peppery wild baby arugula, shaved Parmigiano-Reggiano, and lemon-infused balsamic glaze.',
-        image: 'assets/images/pizza-margherita.jpg',
-        imageFilter: 'hue-rotate(340deg) brightness(1.03)',
+        image: 'assets/images/pizza-prosciutto.webp',
+        jpg: 'assets/images/pizza-prosciutto.jpg',
+        w: 768, h: 768,
         sizes: [
           { label: 'Regular (10")', price: 299 },
           { label: 'Medium (12")', price: 399 },
@@ -376,18 +402,18 @@
         ],
         ingredients: ['Prosciutto di Parma 24M', 'Wild Baby Arugula', 'Parmigiano Reggiano DOP', 'Fior di Latte', 'Aged Balsamic Glaze'],
         printIngredients: 'Prosciutto di Parma D.O.P. (24 months aged), wild baby arugula, shaved Parmigiano Reggiano, Fior di Latte, Modena balsamic reduction.',
-        printCategory: 'Parma Special',
         printFooter: 'Authentic D.O.P. ingredients from Emilia-Romagna'
       },
       {
         name: 'Burrata & Pesto',
-        kicker: '06 • Artisan Green Base',
+        category: 'Artisan Green Base',
         kickerClass: 'text-terracotta',
         badge: 'Whole Pugliese Burrata',
         badgeClass: 'bg-terracotta text-white border border-white/20',
         description: 'House-made crushed Genovese basil pine nut pesto, blistered heirloom cherry tomatoes, cracked black pepper, crowned with a whole 200g creamy Pugliese Burrata.',
-        image: 'assets/images/pizza-quattro.jpg',
-        imageFilter: 'hue-rotate(50deg) saturate(1.2)',
+        image: 'assets/images/pizza-burrata.webp',
+        jpg: 'assets/images/pizza-burrata.jpg',
+        w: 768, h: 768,
         sizes: [
           { label: 'Regular (10")', price: 299 },
           { label: 'Medium (12")', price: 399 },
@@ -395,7 +421,6 @@
         ],
         ingredients: ['Whole Burrata Pugliese', 'Genovese Pine Nut Pesto', 'Heirloom Confit Tomatoes', 'Fior di Latte', 'Cold Pressed Olive Oil'],
         printIngredients: 'Fresh Pugliese burrata 200g, Genovese pine nut pesto, blistered heirloom cherry tomatoes, Fior di Latte, flaked sea salt.',
-        printCategory: 'Artisan Green Base',
         printFooter: 'Arini Crust Pizza • 100% sourdough stone-baked daily'
       }
     ];
@@ -416,6 +441,18 @@
         .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    /* WebP first, local JPEG fallback, inline placeholder as last resort. */
+    function imgFail(el) {
+      if (!el.dataset.fb && el.dataset.jpg) { el.dataset.fb = '1'; el.src = el.dataset.jpg; }
+      else { el.onerror = null; el.src = FALLBACK_IMG; }
+    }
+    function photoImg(p, opts) {
+      var load = opts.eager ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"';
+      return '<img src="' + p.image + '" data-jpg="' + p.jpg + '" width="' + p.w + '" height="' + p.h + '"' +
+        ' alt="' + esc(opts.alt) + '" draggable="false" decoding="async"' + load +
+        ' class="' + opts.cls + '" onerror="imgFail(this)">';
+    }
+
     /* ---------- Render the interactive slider from MENU ---------- */
     function slideHTML(p, i) {
       var chips = p.ingredients.map(function (g) {
@@ -426,26 +463,23 @@
         return '' +
           '<div class="' + (hot ? 'bg-black/40 border border-terracotta/40' : 'bg-black/30 border border-white/5') + ' rounded-xl p-2.5 sm:p-3 text-center relative overflow-hidden">' +
             (hot ? '<span class="absolute top-1 -right-5 bg-terracotta text-[9px] text-white px-5 py-px rotate-[24deg] uppercase font-bold tracking-wide">Popular</span>' : '') +
-            '<span class="block text-xs ' + (hot ? 'text-white/90' : 'text-white/60') + ' font-medium">' + esc(s.label) + '</span>' +
-            '<span class="font-serif text-lg sm:text-xl font-bold ' + (hot ? 'text-white' : 'text-crust') + ' mt-0.5 block">' + inr(s.price) + '</span>' +
+            '<span class="block text-[11px] sm:text-xs ' + (hot ? 'text-white/90' : 'text-white/60') + ' font-medium">' + esc(s.label) + '</span>' +
+            '<span class="font-serif text-base sm:text-xl font-bold ' + (hot ? 'text-white' : 'text-crust') + ' mt-0.5 block">' + inr(s.price) + '</span>' +
           '</div>';
       }).join('');
-      var filter = p.imageFilter ? ' style="filter:' + p.imageFilter + ';"' : '';
       return '' +
         '<div class="pizza-slide flex items-center justify-center p-4 sm:p-6 md:p-12" data-index="' + i + '" role="tabpanel" aria-label="' + esc(p.name) + '">' +
-          '<div class="max-w-7xl w-full h-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-14">' +
+          '<div class="max-w-7xl w-full h-full flex flex-col lg:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-14">' +
             '<div class="w-full lg:w-1/2 flex items-center justify-center max-h-[44vh] sm:max-h-[48vh] lg:max-h-[75vh]">' +
               '<div class="relative w-full max-w-[320px] sm:max-w-[420px] lg:max-w-[560px] aspect-square rounded-full p-2 bg-gradient-to-tr from-white/5 to-white/0 border border-white/10 flex items-center justify-center shadow-2xl">' +
-                '<img src="' + p.image + '" alt="' + esc(p.name) + ' Pizza" draggable="false"' +
-                ' class="w-[94%] h-[94%] object-cover rounded-full hero-pizza-glow hero-pizza-spin pointer-events-none"' + filter +
-                ' onerror="this.onerror=null;this.src=FALLBACK_IMG">' +
+                photoImg(p, { alt: p.name + ' Pizza', eager: i === 0, cls: 'w-[94%] h-[94%] object-cover rounded-full hero-pizza-glow hero-pizza-spin pointer-events-none' }) +
                 '<div class="absolute top-2 right-4 sm:top-6 sm:right-6 ' + p.badgeClass + ' font-serif italic text-xs md:text-sm px-3.5 py-1.5 rounded-full shadow-lg">' + esc(p.badge) + '</div>' +
               '</div>' +
             '</div>' +
             '<div class="w-full lg:w-1/2 flex flex-col justify-center space-y-4 md:space-y-6 text-left">' +
               '<div>' +
-                '<div class="' + p.kickerClass + ' font-semibold text-xs tracking-widest uppercase mb-1">' + esc(p.kicker) + '</div>' +
-                '<h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-parchment leading-tight">' + esc(p.name) + '</h1>' +
+                '<div class="' + p.kickerClass + ' font-semibold text-xs tracking-widest uppercase mb-1">' + esc(pad2(i + 1) + ' • ' + p.category) + '</div>' +
+                '<h1 class="font-serif text-[1.7rem] sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-parchment leading-tight">' + esc(p.name) + '</h1>' +
                 '<p class="text-white/70 text-sm sm:text-base md:text-lg mt-2 max-w-xl font-light leading-relaxed">' + esc(p.description) + '</p>' +
               '</div>' +
               '<div class="bg-charcoalLight/70 border border-white/10 rounded-2xl p-3.5 sm:p-5 backdrop-blur-sm">' +
@@ -470,12 +504,11 @@
             '<span class="font-serif text-xl font-bold ' + (si === 1 ? 'text-terracotta' : 'text-charcoal') + ' block mt-0.5">' + inr(s.price) + '</span>' +
           '</div>';
       }).join('');
-      var filter = p.imageFilter ? ' style="filter:' + p.imageFilter + ';"' : '';
       return '' +
         '<section class="print-page a4-sheet-preview">' +
           '<div class="flex items-center justify-between border-b-2 border-charcoal/20 pb-4 mb-4">' +
             '<div class="flex items-center gap-3">' +
-              '<img src="assets/images/logo.jpg" alt="Arini Crust Pizza logo" class="w-9 h-9 object-contain" onerror="this.style.display=\'none\'">' +
+              '<img src="assets/images/logo.webp" data-jpg="assets/images/logo.jpg" width="512" height="286" alt="Arini Crust Pizza logo" class="w-9 h-9 object-contain" onerror="imgFail(this)">' +
               '<div>' +
                 '<h2 class="font-serif text-2xl font-bold tracking-tight text-charcoal">ARINI CRUST PIZZA</h2>' +
                 '<p class="text-[10px] tracking-widest uppercase text-charcoal/60">Artisanal Wood-Fired Menu • Sourdough 48H</p>' +
@@ -487,11 +520,10 @@
             '</div>' +
           '</div>' +
           '<div class="flex justify-center my-3">' +
-            '<img src="' + p.image + '" alt="' + esc(p.name) + '" class="print-hero-img w-auto object-cover rounded-xl shadow-md border border-gray-200"' + filter +
-            ' onerror="this.onerror=null;this.src=FALLBACK_IMG">' +
+            photoImg(p, { alt: p.name, eager: true, cls: 'print-hero-img w-auto object-cover rounded-xl shadow-md border border-gray-200' }) +
           '</div>' +
           '<div class="text-center my-3 px-4">' +
-            '<span class="text-xs font-semibold text-terracotta uppercase tracking-widest">' + esc(p.printCategory) + '</span>' +
+            '<span class="text-xs font-semibold text-terracotta uppercase tracking-widest">' + esc(p.category) + '</span>' +
             '<h3 class="font-serif text-3xl font-extrabold text-charcoal mt-1">' + esc(p.name) + '</h3>' +
             '<p class="text-sm text-gray-700 mt-2 leading-relaxed max-w-lg mx-auto">' + esc(p.description) + '</p>' +
           '</div>' +
@@ -527,14 +559,25 @@
         im.src = p.image;
       });
       var logo = new Image();
-      logo.src = 'assets/images/logo.jpg';
+      logo.src = 'assets/images/logo.webp';
     }
-    preloadImages();
+    /* Defer bulk preload until the first screen is interactive (QR/mobile-data friendly). */
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(function () { preloadImages(); }, { timeout: 3000 });
+    } else if (document.readyState === 'complete') {
+      preloadImages();
+    } else {
+      window.addEventListener('load', preloadImages);
+    }
     window.addEventListener('beforeprint', preloadImages);
 
     /* ---------- Slide navigation ---------- */
     function updateSlide() {
       track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      var slides = track.children;
+      for (var s = 0; s < slides.length; s++) {
+        if (slides[s].classList) slides[s].classList.toggle('active', s === currentSlide);
+      }
       counter.innerHTML = pad2(currentSlide + 1) + ' <span class="text-white/30 text-sm sm:text-base font-sans font-light">/ ' + pad2(totalSlides) + '</span>';
       var dots = indicatorDots.querySelectorAll('button');
       for (var d = 0; d < dots.length; d++) {
