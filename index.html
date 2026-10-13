@@ -190,6 +190,42 @@
     @media (max-width: 379px) {
       #indicatorDots { display: none; }
     }
+
+    /* ---------- Mild swipe hint (dismisses on first slide change) ---------- */
+    .swipe-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      background: rgba(42, 39, 37, 0.85);
+      border: 1px solid rgba(217, 165, 102, 0.4);
+      color: #FDFBF7;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none; /* never blocks dragging */
+      transition: opacity 0.5s ease;
+    }
+    .swipe-hint.show { opacity: 1; }
+    .swipe-hint .swipe-arrows {
+      display: inline-block;
+      color: #D9A566;
+    }
+    .swipe-hint.show .swipe-arrows { animation: nudge 1.6s ease-in-out infinite; }
+    @keyframes nudge {
+      0%, 100% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .swipe-hint.show .swipe-arrows { animation: none; }
+    }
   </style>
 </head>
 <body class="antialiased selection:bg-terracotta selection:text-white">
@@ -202,6 +238,10 @@
     <!-- MAIN SLIDER VIEWPORT (slides rendered from MENU data) -->
     <main id="sliderViewport" class="relative z-10 w-full flex-1 overflow-hidden select-none">
       <div id="slideTrack" class="slide-track h-full"></div>
+      <div id="swipeHint" class="swipe-hint" aria-hidden="true">
+        <span class="swipe-arrows">&#8592; &#8594;</span>
+        <span id="swipeHintText">Swipe to explore</span>
+      </div>
     </main>
 
     <!-- BOTTOM INTERACTIVE CONTROLS BAR -->
@@ -433,7 +473,8 @@
         dotsLabel: 'Pizza slides',
         sizes: ['Regular (10")', 'Medium (12")', 'Large (14")'],
         langName: 'हिंदी',
-        langAria: 'Switch language to Hindi'
+        langAria: 'Switch language to Hindi',
+        swipeHint: 'Swipe to explore'
       },
       hi: {
         sizesTitle: 'साइज़ और कीमतें',
@@ -445,7 +486,8 @@
         dotsLabel: 'पिज़्ज़ा स्लाइड',
         sizes: ['रेगुलर (10")', 'मीडियम (12")', 'लार्ज (14")'],
         langName: 'English',
-        langAria: 'Switch language to English'
+        langAria: 'Switch language to English',
+        swipeHint: 'स्वाइप करके देखें'
       }
     };
     function T(key) { return STR[lang][key]; }
@@ -529,9 +571,27 @@
       window.addEventListener('load', preloadImages);
     }
 
+    /* ---------- Swipe hint: shows once the menu opens, hides forever
+       (for this visit) on the first slide change or after 7 seconds ---------- */
+    var hintVisible = false, hintSlide = 0, hintTimer = null;
+    function showSwipeHint() {
+      if (hintVisible) return;
+      hintVisible = true;
+      hintSlide = currentSlide;
+      document.getElementById('swipeHint').classList.add('show');
+      hintTimer = setTimeout(hideSwipeHint, 7000);
+    }
+    function hideSwipeHint() {
+      if (!hintVisible) return;
+      hintVisible = false;
+      if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+      document.getElementById('swipeHint').classList.remove('show');
+    }
+
     /* ---------- Slide navigation ---------- */
     function updateSlide() {
       track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      if (hintVisible && currentSlide !== hintSlide) hideSwipeHint();
       var slides = track.children;
       for (var s = 0; s < slides.length; s++) {
         if (slides[s].classList) slides[s].classList.toggle('active', s === currentSlide);
@@ -687,6 +747,7 @@
       var langBtn = document.getElementById('langBtn');
       langBtn.textContent = T('langName');
       langBtn.setAttribute('aria-label', T('langAria'));
+      document.getElementById('swipeHintText').textContent = T('swipeHint');
       indicatorDots.setAttribute('aria-label', T('dotsLabel'));
       updateSlide();
     }
@@ -708,6 +769,7 @@
       menuOpen = true;
       document.body.classList.remove('locked');
       document.getElementById('langModal').classList.remove('open');
+      showSwipeHint();
     }
     function chooseLanguage(L) {
       setLanguage(L);
