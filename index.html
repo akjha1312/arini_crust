@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#171514">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Arini Crust">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/images/icon-512.png">
   <meta name="description" content="Arini Crust Pizza — wood-fired sourdough menu. Scan, swipe and browse six artisan pizzas.">
   <title>Arini Crust Pizza — Wood-Fired Sourdough Menu</title>
   <link rel="icon" href="assets/images/logo.jpg">
@@ -705,6 +712,21 @@
     function chooseLanguage(L) {
       setLanguage(L);
       closeModal();
+      tryFullscreen(); /* modal tap is a real gesture, so phones can go true fullscreen */
+    }
+
+    /* Best-effort fullscreen for QR opens (Android Chrome hides browser UI;
+       iOS Safari ignores it — both fail silently by design). */
+    function tryFullscreen() {
+      try {
+        var el = document.documentElement;
+        if (el.requestFullscreen) {
+          var r = el.requestFullscreen();
+          if (r && r.catch) r.catch(function () {});
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        }
+      } catch (e) {}
     }
 
     /* ---------- Boot: always start with the language modal ---------- */

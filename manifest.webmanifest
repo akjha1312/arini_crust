@@ -1,0 +1,19 @@
+{
+  "name": "Arini Crust Pizza — Wood-Fired Sourdough Menu",
+  "short_name": "Arini Crust",
+  "description": "Scan, swipe and browse six artisan wood-fired sourdough pizzas.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#171514",
+  "theme_color": "#171514",
+  "icons": [
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
