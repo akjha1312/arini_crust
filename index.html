@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Arini Crust Pizza — wood-fired sourdough menu. Browse six artisan pizzas, view printable A4 menu sheets.">
+  <title>Arini Crust Pizza — Artisanal Fullscreen Menu & Printable Sheets</title>
+  <link rel="icon" href="assets/images/logo.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            terracotta: '#C8372D',
+            tomato: '#B92D23',
+            crust: '#D9A566',
+            parchment: '#FDFBF7',
+            parchmentDark: '#F4ECE4',
+            charcoal: '#171514',
+            charcoalLight: '#2A2725',
+            basil: '#3B5336',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* ---------- Base (works even if the Tailwind CDN is unreachable) ---------- */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background-color: #171514;
+      color: #FDFBF7;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ---------- Slider core ---------- */
+    #sliderViewport {
+      touch-action: pan-y; /* horizontal drags drive the slider, vertical scroll stays native */
+      cursor: grab;
+    }
+    #sliderViewport.dragging { cursor: grabbing; }
+    #sliderViewport img { -webkit-user-drag: none; user-select: none; }
+    .slide-track {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform;
+    }
+    .slide-track.no-anim { transition: none; }
+    .pizza-slide {
+      flex: 0 0 100%;
+      width: 100%;
+      height: 100%;
+      position: relative;
+      min-width: 0;
+    }
+    @media (max-width: 1023px) {
+      /* Let tall content scroll inside the slide instead of overflowing the viewport */
+      .pizza-slide { overflow-y: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .slide-track { transition-duration: 0.01ms; }
+      .hero-pizza-spin { animation: none !important; }
+    }
+
+    /* ---------- Hero pizza glow & float ---------- */
+    .hero-pizza-glow {
+      filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.75));
+    }
+    .hero-pizza-spin {
+      animation: gentleFloat 8s ease-in-out infinite alternate;
+    }
+    @keyframes gentleFloat {
+      0% { transform: translateY(0px) rotate(0deg) scale(1); }
+      100% { transform: translateY(-8px) rotate(1.5deg) scale(1.015); }
+    }
+
+    /* ---------- A4 sheet preview (on-screen) ---------- */
+    .print-container { display: none; }
+    .a4-sheet-preview {
+      width: min(210mm, 100%);
+      min-height: 0;
+      background: #FFFFFF;
+      color: #171514;
+      margin: 0 auto 40px auto;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      padding: 14mm 16mm;
+      border-radius: 4px;
+      position: relative;
+    }
+    #previewToolbar { display: none; }
+    body.preview-print-mode { background: #E5E0D8 !important; }
+    body.preview-print-mode .interactive-ui { display: none !important; }
+    body.preview-print-mode .print-container { display: block !important; padding: 88px 16px 40px 16px; }
+    body.preview-print-mode #previewToolbar {
+      display: flex !important;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      background: rgba(23, 21, 20, 0.96);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+    }
+
+    /* ---------- Print: strict A4 rules (top-level @page for max compatibility) ---------- */
+    @page {
+      size: A4 portrait;
+      margin: 12mm 14mm;
+    }
+    @media print {
+      html, body {
+        background: #ffffff !important;
+        color: #111111 !important;
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif !important;
+        height: auto !important;
+        overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .interactive-ui,
+      #previewToolbar,
+      .no-print {
+        display: none !important;
+      }
+      .print-container {
+        display: block !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .a4-sheet-preview {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+      /* One pizza per physical page, no blank first/last page */
+      .print-page {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        break-after: page;
+        page-break-after: always;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        background: #ffffff !important;
+        color: #111111 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .print-page:last-child {
+        break-after: auto;
+        page-break-after: auto;
+      }
+      .print-hero-img {
+        max-height: 92mm !important;
+        width: auto !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
+      }
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-terracotta selection:text-white">
+
+  <!-- ========================================== -->
+  <!-- 1. INTERACTIVE FULLSCREEN SLIDER MODE      -->
+  <!-- ========================================== -->
+  <div class="interactive-ui relative w-screen h-screen h-[100dvh] overflow-hidden flex flex-col justify-between">
+
+    <!-- TOP NAVIGATION & BRANDING BAR -->
+    <header class="relative z-30 w-full px-5 py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/40 border-b border-white/10">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 md:w-11 md:h-11 shrink-0 rounded-full overflow-hidden border border-white/20 bg-charcoalLight p-1 flex items-center justify-center">
+          <img src="assets/images/logo.jpg" alt="Arini Crust Pizza Logo" class="w-full h-full object-contain filter brightness-110" onerror="this.style.display='none'">
+        </div>
+        <div class="min-w-0">
+          <span class="font-serif tracking-wider text-lg md:text-xl font-bold uppercase text-parchment flex items-center gap-1.5 whitespace-nowrap">
+            Arini Crust <span class="text-terracotta text-sm italic font-normal lowercase tracking-normal">artisan pizza</span>
+          </span>
+          <p class="text-[10px] uppercase tracking-widest text-white/50 hidden sm:block">Wood-Fired Sourdough • Est. 2018</p>
+        </div>
+      </div>
+
+      <!-- Action items: Print Menu & Mode Switch -->
+      <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+        <button onclick="triggerPrintMenu()" class="print-btn flex items-center gap-2 bg-white/10 hover:bg-terracotta transition-colors text-white text-xs font-semibold px-3.5 py-2 md:px-5 md:py-2.5 rounded-full border border-white/15 shadow-sm active:scale-95 group">
+          <svg class="w-4 h-4 text-crust group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+          </svg>
+          <span class="tracking-wide">Print Menu</span>
+        </button>
+
+        <button id="togglePreviewBtn" onclick="togglePrintPreview()" aria-label="Preview printable A4 sheets" class="flex items-center gap-1.5 text-xs text-white/70 hover:text-white bg-charcoalLight/80 hover:bg-charcoalLight px-3.5 py-2 rounded-full border border-white/10 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span id="previewBtnText">A4 Sheet View</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN SLIDER VIEWPORT (slides rendered from MENU data) -->
+    <main id="sliderViewport" class="relative z-10 w-full flex-1 overflow-hidden select-none">
+      <div id="slideTrack" class="slide-track h-full"></div>
+    </main>
+
+    <!-- BOTTOM INTERACTIVE CONTROLS BAR -->
+    <footer class="relative z-30 w-full px-6 py-4 md:px-12 md:py-6 flex items-center justify-between backdrop-blur-md bg-charcoal/50 border-t border-white/10">
+
+      <!-- Slide Counter indicator -->
+      <div class="flex items-center gap-3">
+        <span id="slideCounter" class="font-serif text-xl sm:text-2xl font-bold text-parchment tracking-wider" aria-live="polite"></span>
+        <!-- Progress Pills -->
+        <div class="flex items-center gap-1.5 ml-3" id="indicatorDots" role="tablist" aria-label="Pizza slides"></div>
+      </div>
+
+      <!-- Navigation Arrows & Keyboard hints -->
+      <div class="flex items-center gap-3">
+        <span class="hidden md:inline-block text-[11px] text-white/40 uppercase tracking-widest mr-2">Use &#8592; &#8594; or Swipe</span>
+
+        <button id="prevBtn" onclick="prevSlide()" aria-label="Previous Pizza" class="nav-button w-11 h-11 md:w-12 md:h-12 rounded-full border border-white/20 bg-charcoalLight/80 hover:bg-white/20 flex items-center justify-center transition-transform active:scale-90 text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+
+        <button id="nextBtn" onclick="nextSlide()" aria-label="Next Pizza" class="nav-button w-11 h-11 md:w-12 md:h-12 rounded-full border border-terracotta bg-terracotta hover:bg-tomato flex items-center justify-center transition-transform active:scale-90 text-white shadow-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+
+    </footer>
+  </div>
+
+  <!-- Sticky toolbar shown ONLY in A4 preview mode (always reachable, easy exit) -->
+  <div id="previewToolbar" class="no-print">
+    <div class="flex items-center gap-2 text-sm text-white/90">
+      <span class="font-serif font-bold">A4 Sheet Preview</span>
+      <span class="text-white/50 text-xs hidden sm:inline">6 sheets • one page per pizza</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="triggerPrintMenu()" class="flex items-center gap-1.5 bg-terracotta hover:bg-tomato text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors">
+        Print Menu
+      </button>
+      <button onclick="togglePrintPreview()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-4 py-2 rounded-full border border-white/15 transition-colors">
+        &#8592; Back to Menu
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 2. PRINT LAYOUT — A4 sheets rendered from the SAME MENU data   -->
+  <!-- ============================================================== -->
+  <div class="print-container" id="printContainer"></div>
+
+  <!-- ========================================== -->
+  <!-- 3. SINGLE MENU DATA SOURCE + CONTROLLER    -->
+  <!-- Edit prices/names/ingredients here once —  -->
+  <!-- slider AND print sheets update together.   -->
+  <!-- Sample Indian prices (editable examples).  -->
+  <!-- ========================================== -->
+  <script>
+    'use strict';
+
+    /* Single source of truth for the whole menu. */
+    var MENU = [
+      {
+        name: 'Margherita Verace',
+        kicker: '01 • Wood-Fired Red',
+        kickerClass: 'text-terracotta',
+        badge: 'Signature Classic',
+        badgeClass: 'bg-terracotta text-white border border-white/20',
+        description: 'Blistered sourdough crust naturally fermented for 48 hours, loaded with vibrant San Marzano tomatoes, fresh buffalo mozzarella, hand-picked sweet basil, and Ligurian olive oil.',
+        image: 'assets/images/pizza-margherita.jpg',
+        imageFilter: '',
+        sizes: [
+          { label: 'Regular (10")', price: 199 },
+          { label: 'Medium (12")', price: 299 },
+          { label: 'Large (14")', price: 399 }
+        ],
+        ingredients: ['48h Sourdough', 'San Marzano D.O.P.', 'Bufala Mozzarella', 'Genovese Sweet Basil', 'EVOO Liguria'],
+        printIngredients: 'Organic 48h fermented sourdough, San Marzano D.O.P. tomatoes, fresh bufala mozzarella, Genovese basil leaves, cold-pressed extra virgin olive oil.',
+        printCategory: 'Pizzeria Classica',
+        printFooter: 'Baked at 485°C in our stone oven'
+      },
+      {
+        name: 'Tartufo Selvaggio',
+        kicker: '02 • Gourmet White Base',
+        kickerClass: 'text-crust',
+        badge: "Chef's Reserve",
+        badgeClass: 'bg-charcoal text-crust border border-crust/50',
+        description: 'Fragrant forest blend of pan-seared wild porcini and cremini mushrooms, melted alpine fontina, rich taleggio, fresh garden thyme, and hand-shaved Norcia black truffles.',
+        image: 'assets/images/pizza-tartufo.jpg',
+        imageFilter: '',
+        sizes: [
+          { label: 'Regular (10")', price: 299 },
+          { label: 'Medium (12")', price: 399 },
+          { label: 'Large (14")', price: 499 }
+        ],
+        ingredients: ['Wild Porcini & Cremini', 'Shaved Black Truffle', 'Alpine Fontina', 'Taleggio Cream', 'Organic Thyme'],
+        printIngredients: 'Pan-seared wild porcini, shaved Norcia black truffles, Alpine fontina, taleggio cream, organic thyme, garlic-infused olive oil.',
+        printCategory: "Chef's Reserve",
+        printFooter: 'Handcrafted sourdough • Locally sourced mushrooms'
+      },
+      {
+        name: 'Diavola Fuoco',
+        kicker: '03 • Spicy Specialty',
+        kickerClass: 'text-terracotta',
+        badge: 'Hot Honey Infused',
+        badgeClass: 'bg-terracotta text-white border border-white/20',
+        description: 'Artisanal dry-cured Soppressata Calabrese cups blistered crisp in wood-fired heat, accompanied by chili-infused wildflower hot honey, smoked provolone, and fresh oregano.',
+        image: 'assets/images/pizza-diavola.jpg',
+        imageFilter: '',
+        sizes: [
+          { label: 'Regular (10")', price: 249 },
+          { label: 'Medium (12")', price: 349 },
+          { label: 'Large (14")', price: 449 }
+        ],
+        ingredients: ['Crispy Soppressata', 'Artisan Hot Honey', 'Calabrian Chili Flakes', 'Smoked Provolone', 'Wild Oregano'],
+        printIngredients: 'Dry-cured Soppressata Calabrese, wildflower hot honey, crushed Calabrian red chili, smoked provolone, fresh oregano.',
+        printCategory: 'Spicy Specialty',
+        printFooter: 'Gluten-free 10" crust option available on request'
+      },
+      {
+        name: 'Quattro Formaggi',
+        kicker: '04 • White Formaggi',
+        kickerClass: 'text-crust',
+        badge: 'Four Cheese Delicacy',
+        badgeClass: 'bg-charcoal text-parchment border border-white/20',
+        description: "Velvety white base with creamy Gorgonzola Dolce, aged Fior di Latte, hand-dipped sheep's milk ricotta dollops, smoked scamorza, and roasted rosemary walnuts.",
+        image: 'assets/images/pizza-quattro.jpg',
+        imageFilter: '',
+        sizes: [
+          { label: 'Regular (10")', price: 249 },
+          { label: 'Medium (12")', price: 349 },
+          { label: 'Large (14")', price: 449 }
+        ],
+        ingredients: ['Gorgonzola Dolce', "Sheep's Milk Ricotta", 'Smoked Scamorza', 'Fior di Latte', 'Toasted Rosemary Walnuts'],
+        printIngredients: "Gorgonzola Dolce, sheep's milk ricotta, smoked scamorza, Fior di Latte, roasted rosemary walnuts, local acacia honey.",
+        printCategory: 'White Formaggi',
+        printFooter: 'Contains walnuts (tree nuts) • Vegetarian friendly'
+      },
+      {
+        name: 'Prosciutto di Parma',
+        kicker: '05 • Prosciutto Crudo',
+        kickerClass: 'text-terracotta',
+        badge: 'Parma Special',
+        badgeClass: 'bg-basil text-white border border-white/20',
+        description: 'San Marzano tomato base topped post-bake with 24-month aged Prosciutto di Parma, peppery wild baby arugula, shaved Parmigiano-Reggiano, and lemon-infused balsamic glaze.',
+        image: 'assets/images/pizza-margherita.jpg',
+        imageFilter: 'hue-rotate(340deg) brightness(1.03)',
+        sizes: [
+          { label: 'Regular (10")', price: 299 },
+          { label: 'Medium (12")', price: 399 },
+          { label: 'Large (14")', price: 499 }
+        ],
+        ingredients: ['Prosciutto di Parma 24M', 'Wild Baby Arugula', 'Parmigiano Reggiano DOP', 'Fior di Latte', 'Aged Balsamic Glaze'],
+        printIngredients: 'Prosciutto di Parma D.O.P. (24 months aged), wild baby arugula, shaved Parmigiano Reggiano, Fior di Latte, Modena balsamic reduction.',
+        printCategory: 'Parma Special',
+        printFooter: 'Authentic D.O.P. ingredients from Emilia-Romagna'
+      },
+      {
+        name: 'Burrata & Pesto',
+        kicker: '06 • Artisan Green Base',
+        kickerClass: 'text-terracotta',
+        badge: 'Whole Pugliese Burrata',
+        badgeClass: 'bg-terracotta text-white border border-white/20',
+        description: 'House-made crushed Genovese basil pine nut pesto, blistered heirloom cherry tomatoes, cracked black pepper, crowned with a whole 200g creamy Pugliese Burrata.',
+        image: 'assets/images/pizza-quattro.jpg',
+        imageFilter: 'hue-rotate(50deg) saturate(1.2)',
+        sizes: [
+          { label: 'Regular (10")', price: 299 },
+          { label: 'Medium (12")', price: 399 },
+          { label: 'Large (14")', price: 499 }
+        ],
+        ingredients: ['Whole Burrata Pugliese', 'Genovese Pine Nut Pesto', 'Heirloom Confit Tomatoes', 'Fior di Latte', 'Cold Pressed Olive Oil'],
+        printIngredients: 'Fresh Pugliese burrata 200g, Genovese pine nut pesto, blistered heirloom cherry tomatoes, Fior di Latte, flaked sea salt.',
+        printCategory: 'Artisan Green Base',
+        printFooter: 'Arini Crust Pizza • 100% sourdough stone-baked daily'
+      }
+    ];
+
+    var FALLBACK_IMG = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">' +
+      '<circle cx="300" cy="300" r="290" fill="#2A2725"/>' +
+      '<circle cx="300" cy="300" r="230" fill="#D9A566"/>' +
+      '<circle cx="300" cy="300" r="185" fill="#C8372D"/>' +
+      '<text x="300" y="330" font-family="Georgia,serif" font-size="120" font-style="italic" fill="#FDFBF7" text-anchor="middle">A</text>' +
+      '</svg>'
+    );
+
+    function inr(n) { return '₹' + n; } /* Indian rupee formatting in one place */
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ---------- Render the interactive slider from MENU ---------- */
+    function slideHTML(p, i) {
+      var chips = p.ingredients.map(function (g) {
+        return '<span class="px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg text-xs text-white/80">' + esc(g) + '</span>';
+      }).join('');
+      var cards = p.sizes.map(function (s, si) {
+        var hot = si === 1; /* Medium highlighted as popular, matches original design */
+        return '' +
+          '<div class="' + (hot ? 'bg-black/40 border border-terracotta/40' : 'bg-black/30 border border-white/5') + ' rounded-xl p-2.5 sm:p-3 text-center relative overflow-hidden">' +
+            (hot ? '<span class="absolute top-1 -right-5 bg-terracotta text-[9px] text-white px-5 py-px rotate-[24deg] uppercase font-bold tracking-wide">Popular</span>' : '') +
+            '<span class="block text-xs ' + (hot ? 'text-white/90' : 'text-white/60') + ' font-medium">' + esc(s.label) + '</span>' +
+            '<span class="font-serif text-lg sm:text-xl font-bold ' + (hot ? 'text-white' : 'text-crust') + ' mt-0.5 block">' + inr(s.price) + '</span>' +
+          '</div>';
+      }).join('');
+      var filter = p.imageFilter ? ' style="filter:' + p.imageFilter + ';"' : '';
+      return '' +
+        '<div class="pizza-slide flex items-center justify-center p-4 sm:p-6 md:p-12" data-index="' + i + '" role="tabpanel" aria-label="' + esc(p.name) + '">' +
+          '<div class="max-w-7xl w-full h-full flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-14">' +
+            '<div class="w-full lg:w-1/2 flex items-center justify-center max-h-[44vh] sm:max-h-[48vh] lg:max-h-[75vh]">' +
+              '<div class="relative w-full max-w-[320px] sm:max-w-[420px] lg:max-w-[560px] aspect-square rounded-full p-2 bg-gradient-to-tr from-white/5 to-white/0 border border-white/10 flex items-center justify-center shadow-2xl">' +
+                '<img src="' + p.image + '" alt="' + esc(p.name) + ' Pizza" draggable="false"' +
+                ' class="w-[94%] h-[94%] object-cover rounded-full hero-pizza-glow hero-pizza-spin pointer-events-none"' + filter +
+                ' onerror="this.onerror=null;this.src=FALLBACK_IMG">' +
+                '<div class="absolute top-2 right-4 sm:top-6 sm:right-6 ' + p.badgeClass + ' font-serif italic text-xs md:text-sm px-3.5 py-1.5 rounded-full shadow-lg">' + esc(p.badge) + '</div>' +
+              '</div>' +
+            '</div>' +
+            '<div class="w-full lg:w-1/2 flex flex-col justify-center space-y-4 md:space-y-6 text-left">' +
+              '<div>' +
+                '<div class="' + p.kickerClass + ' font-semibold text-xs tracking-widest uppercase mb-1">' + esc(p.kicker) + '</div>' +
+                '<h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-parchment leading-tight">' + esc(p.name) + '</h1>' +
+                '<p class="text-white/70 text-sm sm:text-base md:text-lg mt-2 max-w-xl font-light leading-relaxed">' + esc(p.description) + '</p>' +
+              '</div>' +
+              '<div class="bg-charcoalLight/70 border border-white/10 rounded-2xl p-3.5 sm:p-5 backdrop-blur-sm">' +
+                '<div class="text-[11px] uppercase tracking-wider text-white/40 font-semibold mb-2.5">Available Sizes &amp; Pricing</div>' +
+                '<div class="grid grid-cols-3 gap-2.5 sm:gap-4">' + cards + '</div>' +
+              '</div>' +
+              '<div>' +
+                '<span class="text-[11px] uppercase tracking-wider text-white/40 font-semibold block mb-2">Prime Ingredients</span>' +
+                '<div class="flex flex-wrap gap-1.5 sm:gap-2">' + chips + '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    /* ---------- Render the printable A4 sheets from the SAME MENU ---------- */
+    function sheetHTML(p, i) {
+      var prices = p.sizes.map(function (s, si) {
+        return '' +
+          '<div>' +
+            '<span class="text-xs font-medium text-gray-500 block">' + esc(s.label) + '</span>' +
+            '<span class="font-serif text-xl font-bold ' + (si === 1 ? 'text-terracotta' : 'text-charcoal') + ' block mt-0.5">' + inr(s.price) + '</span>' +
+          '</div>';
+      }).join('');
+      var filter = p.imageFilter ? ' style="filter:' + p.imageFilter + ';"' : '';
+      return '' +
+        '<section class="print-page a4-sheet-preview">' +
+          '<div class="flex items-center justify-between border-b-2 border-charcoal/20 pb-4 mb-4">' +
+            '<div class="flex items-center gap-3">' +
+              '<img src="assets/images/logo.jpg" alt="Arini Crust Pizza logo" class="w-9 h-9 object-contain" onerror="this.style.display=\'none\'">' +
+              '<div>' +
+                '<h2 class="font-serif text-2xl font-bold tracking-tight text-charcoal">ARINI CRUST PIZZA</h2>' +
+                '<p class="text-[10px] tracking-widest uppercase text-charcoal/60">Artisanal Wood-Fired Menu • Sourdough 48H</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="text-right">' +
+              '<span class="text-xs font-mono font-bold px-2 py-1 bg-gray-100 rounded border border-gray-300">PAGE ' + pad2(i + 1) + ' / ' + pad2(MENU.length) + '</span>' +
+              '<p class="text-[9px] text-gray-400 mt-0.5">arinicrust.com</p>' +
+            '</div>' +
+          '</div>' +
+          '<div class="flex justify-center my-3">' +
+            '<img src="' + p.image + '" alt="' + esc(p.name) + '" class="print-hero-img w-auto object-cover rounded-xl shadow-md border border-gray-200"' + filter +
+            ' onerror="this.onerror=null;this.src=FALLBACK_IMG">' +
+          '</div>' +
+          '<div class="text-center my-3 px-4">' +
+            '<span class="text-xs font-semibold text-terracotta uppercase tracking-widest">' + esc(p.printCategory) + '</span>' +
+            '<h3 class="font-serif text-3xl font-extrabold text-charcoal mt-1">' + esc(p.name) + '</h3>' +
+            '<p class="text-sm text-gray-700 mt-2 leading-relaxed max-w-lg mx-auto">' + esc(p.description) + '</p>' +
+          '</div>' +
+          '<div class="bg-gray-50 border border-gray-200 rounded-lg p-3 my-3">' +
+            '<div class="grid grid-cols-3 text-center divide-x divide-gray-200">' + prices + '</div>' +
+          '</div>' +
+          '<div class="border-t border-gray-200 pt-3">' +
+            '<span class="text-[11px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Key Ingredients</span>' +
+            '<p class="text-xs text-gray-700 leading-normal">' + esc(p.printIngredients) + '</p>' +
+          '</div>' +
+          '<div class="pt-3 mt-3 border-t border-gray-200 flex justify-between items-center text-[10px] text-gray-500">' +
+            '<span>' + esc(p.printFooter) + '</span>' +
+            '<span>Page ' + (i + 1) + ' of ' + MENU.length + '</span>' +
+          '</div>' +
+        '</section>';
+    }
+
+    /* ---------- State + rendering ---------- */
+    var currentSlide = 0;
+    var totalSlides = MENU.length;
+    var track = document.getElementById('slideTrack');
+    var counter = document.getElementById('slideCounter');
+    var indicatorDots = document.getElementById('indicatorDots');
+    var viewport = document.getElementById('sliderViewport');
+
+    track.innerHTML = MENU.map(slideHTML).join('');
+    document.getElementById('printContainer').innerHTML = MENU.map(sheetHTML).join('');
+
+    /* Preload every menu image up-front so print sheets never render blank. */
+    function preloadImages() {
+      MENU.forEach(function (p) {
+        var im = new Image();
+        im.src = p.image;
+      });
+      var logo = new Image();
+      logo.src = 'assets/images/logo.jpg';
+    }
+    preloadImages();
+    window.addEventListener('beforeprint', preloadImages);
+
+    /* ---------- Slide navigation ---------- */
+    function updateSlide() {
+      track.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+      counter.innerHTML = pad2(currentSlide + 1) + ' <span class="text-white/30 text-sm sm:text-base font-sans font-light">/ ' + pad2(totalSlides) + '</span>';
+      var dots = indicatorDots.querySelectorAll('button');
+      for (var d = 0; d < dots.length; d++) {
+        dots[d].className = (d === currentSlide)
+          ? 'w-8 h-1.5 rounded-full bg-terracotta transition-all'
+          : 'w-2.5 h-1.5 rounded-full bg-white/20 hover:bg-white/40 transition-all';
+        dots[d].setAttribute('aria-selected', d === currentSlide ? 'true' : 'false');
+      }
+    }
+
+    function goToSlide(index) {
+      if (typeof index !== 'number' || isNaN(index)) return;
+      currentSlide = ((Math.round(index) % totalSlides) + totalSlides) % totalSlides;
+      updateSlide();
+    }
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
+
+    /* Progress dots built from the same data (always visible, all viewports). */
+    MENU.forEach(function (p, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', 'Show ' + p.name);
+      b.addEventListener('click', function () { goToSlide(i); });
+      indicatorDots.appendChild(b);
+    });
+    updateSlide();
+
+    /* ---------- Keyboard: arrows only, never hijack form controls ---------- */
+    window.addEventListener('keydown', function (e) {
+      if (document.body.classList.contains('preview-print-mode')) {
+        if (e.key === 'Escape') togglePrintPreview();
+        return;
+      }
+      var t = e.target;
+      if (t && t.closest && t.closest('button, input, textarea, select, [contenteditable="true"]')) return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); nextSlide(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+      else if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); nextSlide(); }
+    });
+
+    /* ---------- Unified pointer drag: mouse + touch, with live follow ---------- */
+    var drag = { active: false, startX: 0, dx: 0, pointerId: null, moved: false };
+
+    function viewportWidth() { return viewport.clientWidth || window.innerWidth || 1; }
+
+    viewport.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      drag.active = true;
+      drag.startX = e.clientX;
+      drag.dx = 0;
+      drag.moved = false;
+      drag.pointerId = e.pointerId;
+      track.classList.add('no-anim');
+      viewport.classList.add('dragging');
+      try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    viewport.addEventListener('pointermove', function (e) {
+      if (!drag.active || e.pointerId !== drag.pointerId) return;
+      drag.dx = e.clientX - drag.startX;
+      if (Math.abs(drag.dx) > 6) drag.moved = true;
+      var base = -(currentSlide * viewportWidth());
+      track.style.transform = 'translateX(' + (base + drag.dx) + 'px)';
+    });
+
+    function endDrag(e) {
+      if (!drag.active || (e && e.pointerId !== drag.pointerId)) return;
+      drag.active = false;
+      viewport.classList.remove('dragging');
+      track.classList.remove('no-anim');
+      var threshold = Math.min(90, viewportWidth() * 0.12);
+      if (drag.dx <= -threshold) nextSlide();
+      else if (drag.dx >= threshold) prevSlide();
+      else updateSlide(); /* snap back */
+      if (drag.moved && e && e.type === 'pointerup') {
+        /* Swallow the click that follows a real drag so dots/buttons don't misfire. */
+        var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+        viewport.addEventListener('click', swallow, true);
+        setTimeout(function () { viewport.removeEventListener('click', swallow, true); }, 50);
+      }
+      drag.dx = 0;
+      drag.pointerId = null;
+    }
+    viewport.addEventListener('pointerup', endDrag);
+    viewport.addEventListener('pointercancel', endDrag);
+    viewport.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+    /* ---------- Print + A4 preview ---------- */
+    function triggerPrintMenu() {
+      window.print(); /* native dialog; print CSS outputs all sheets, any slide */
+    }
+
+    function togglePrintPreview() {
+      var on = document.body.classList.toggle('preview-print-mode');
+      var btnText = document.getElementById('previewBtnText');
+      if (btnText) btnText.textContent = on ? 'Exit A4 View' : 'A4 Sheet View';
+      var toggle = document.getElementById('togglePreviewBtn');
+      if (toggle) toggle.setAttribute('aria-expanded', on ? 'true' : 'false');
+      if (on) {
+        window.scrollTo(0, 0);
+        document.body.style.overflowY = 'auto';
+      } else {
+        document.body.style.overflowY = '';
+      }
+    }
+  </script>
+
+</body>
+</html>
